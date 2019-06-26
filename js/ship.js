@@ -20,9 +20,9 @@ class State{
     this.status = status;
     this.actors = actors;
   }
-  update(time, arrowKeys){
-    let newActors = this.actors.map(actor => actor.update(time, arrowKeys));
-    if(arrowKeys["Space"]){
+  update(time, keysDown){
+    let newActors = this.actors.map(actor => actor.update(time, keysDown));
+    if(keysDown["Space"]){
       let ship = newActors.find(actor => actor.type == "ship");
       newActors = newActors.concat([new Laser(ship.bow, ship.angle)])
     }
@@ -157,17 +157,17 @@ class Ship{
   translate(point, angle, radius){
     return point.plus(new Vec(Math.cos(angle),Math.sin(angle)).times(radius));
   }
-  update(time,arrowKeys){
+  update(time,keysDown){
     let newSpeed = this.speed;
     let pivot = 0;
-    if (arrowKeys["ArrowUp"]) {
+    if (keysDown["ArrowUp"]) {
       let accel = new Vec(Math.cos(this.angle), Math.sin(this.angle));
       accel = accel.times(shipAcceleration);
       accel = accel.times(time);
       newSpeed = newSpeed.plus(accel);
     }
-    if (arrowKeys["ArrowLeft"]) pivot = -time * turnSpeed;
-    if (arrowKeys["ArrowRight"]) pivot = time * turnSpeed;
+    if (keysDown["ArrowLeft"]) pivot = -time * turnSpeed;
+    if (keysDown["ArrowRight"]) pivot = time * turnSpeed;
     let newCenter = this.center.plus(newSpeed);
     let newAngle = this.angle + pivot;
     return new Ship(newSpeed, newCenter, newAngle, this.radius);
@@ -195,10 +195,7 @@ class Laser{
   }
   collide(state, actor){
     if(actor.type == "asteroid"){
-      console.log("old",state.actors);
       let newActors = state.actors.filter(a => a != this);
-      //let newStatus = newActors.some(actor => actor.type == "asteroid") ? "playing" : "completed";
-      console.log("new",newActors);
       return new State(state.status, newActors);
     }
   }
@@ -208,6 +205,7 @@ class Laser{
 }
 
 Laser.prototype.type = "laser";
+Laser.ready = true;
 
 class Asteroid{
   constructor(center, radius, speed, direction, pointsFactory){
@@ -243,7 +241,15 @@ class Asteroid{
   collide(state, actor){
     if(actor.type == "laser"){
       let newActors = state.actors.filter(a => a != this);
-      let newStatus = newActors.some(actor => actor.type == "asteroid") ? "playing" : "completed";
+      let newStatus = state.status;
+      console.log(this.radius);
+      if (this.radius > 40){
+        let newAsteroid1 = new Asteroid(this.center, this.radius / 2, this.speed);
+        let newAsteroid2 = new Asteroid(this.center, this.radius / 2, this.speed);
+        newActors = state.actors.filter(a => a != this).concat([newAsteroid1, newAsteroid2]);
+      } else {
+        newStatus = newActors.some(actor => actor.type == "asteroid") ? "playing" : "completed";
+      }
       return new State(newStatus, newActors);
     }
   }
@@ -263,14 +269,14 @@ let ship = new Ship(new Vec(0,0), new Vec(300,300), 0, 20);
 let asteroids = [1,2,3,4,5].map(_ => new Asteroid(new Vec(Math.random()*300,Math.random()*300),Math.random()*100,asteroidSpeed + Math.random()*100));
 let state = new State("playing",[ship].concat(asteroids));
 let display = new Display(document.body, canvas);
-let arrowKeys = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
+let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
 display.syncState(state);
 
 
 function animate(time, lastTime){
   if (lastTime != null){
     let timeStep = Math.min(10, time - lastTime) / 1000;
-    state = state.update(timeStep, arrowKeys);
+    state = state.update(timeStep, keysDown);
     display.syncState(state);
   }
   lastTime = time;
