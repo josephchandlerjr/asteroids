@@ -16,6 +16,7 @@ function trackKeys(keys){
 
 class State{
   constructor(status, actors){
+    console.log(status);
     this.status = status;
     this.actors = actors;
   }
@@ -28,13 +29,14 @@ class State{
     let newState = new State(this.status, newActors);
     let ship = newActors.find(actor => actor.type == "ship");
     let lasers = newActors.filter(actor => actor.type == "laser");
-    // loop over this.actors so that if we have to remove an actor we do so in newState
+    // loop over newActors not newState.actors in case something is removed
     for (let actor of newActors){
       if(actor.type == "asteroid"){
         if(this.touches(ship,actor)) newState = ship.collide(newState, actor);
         for (let laser of lasers){
           if (this.touches(laser,actor)){
             newState = actor.collide(newState, laser);
+            newState = laser.collide(newState, actor);
           }
         }
       }
@@ -190,6 +192,15 @@ class Laser{
   update(time){
     let newCenter = this.center.plus(this.moveVector);
     return new Laser(newCenter, this.angle);
+  }
+  collide(state, actor){
+    if(actor.type == "asteroid"){
+      console.log("old",state.actors);
+      let newActors = state.actors.filter(a => a != this);
+      //let newStatus = newActors.some(actor => actor.type == "asteroid") ? "playing" : "completed";
+      console.log("new",newActors);
+      return new State(state.status, newActors);
+    }
   }
   move(newCenter){ // should never be moved
     return null;
