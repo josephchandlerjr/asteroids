@@ -16,6 +16,7 @@ function trackKeys(keys){
 
 class State{
   constructor(status, actors){
+    console.log(status);
     this.status = status;
     this.actors = actors;
   }
@@ -159,7 +160,7 @@ class Ship{
   }
   collide(state, actor){
     if(actor.type == "asteroid"){
-      return newState(...state.actors)
+      return new State("dead", state.actors)
     }
   }
   computePoints(center, angle, radius){
@@ -244,6 +245,14 @@ class Asteroid{
   }
   move(newCenter){
     return new Asteroid(newCenter, this.radius, this.speed, this.direction, this.pointsFactory);
+  }
+
+  collide(state, actor){
+    if(actor.type == "laser"){
+      let newActors = state.actors.filter(actor => actor != this);
+      let newStatus = newActors.some(actor => actor.type == "asteroid") ? "playing" : "completed";
+      return new State(newStatus, newActors);
+    }
   }
   update(time){
     let newCenter = this.center.plus(this.direction.times(time));
