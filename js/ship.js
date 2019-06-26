@@ -16,13 +16,12 @@ function trackKeys(keys){
 
 class State{
   constructor(status, actors){
-    console.log(status);
     this.status = status;
     this.actors = actors;
   }
   update(time, keysDown){
     let newActors = this.actors.map(actor => actor.update(time, keysDown));
-    if(keysDown["Space"]){
+    if(keysDown["Space"] && laserBattery.isReady()){
       let ship = newActors.find(actor => actor.type == "ship");
       newActors = newActors.concat([new Laser(ship.bow, ship.angle)])
     }
@@ -242,7 +241,6 @@ class Asteroid{
     if(actor.type == "laser"){
       let newActors = state.actors.filter(a => a != this);
       let newStatus = state.status;
-      console.log(this.radius);
       if (this.radius > 40){
         let newAsteroid1 = new Asteroid(this.center, this.radius / 2, this.speed);
         let newAsteroid2 = new Asteroid(this.center, this.radius / 2, this.speed);
@@ -261,9 +259,26 @@ class Asteroid{
 
 Asteroid.prototype.type = "asteroid";
 
+function createLaserBattery(delay){
+  return {
+    ready: true,
+    setDelay: function(){
+      this.ready = false;
+      setTimeout( () => this.ready = true, delay);
+    },
+    isReady: function(){
+      if(this.ready == false) return false;
+      this.setDelay();
+      return true;
+    }
+  }
+};
+
+let laserDelay = 150;
 let shipAcceleration = 4;
 let turnSpeed = 5;
 let asteroidSpeed = 150;
+let laserBattery = createLaserBattery(laserDelay);
 let ship = new Ship(new Vec(0,0), new Vec(300,300), 0, 20);
 //let asteroid = new Asteroid(new Vec(30,30), 40, asteroidSpeed);
 let asteroids = [1,2,3,4,5].map(_ => new Asteroid(new Vec(Math.random()*300,Math.random()*300),Math.random()*100,asteroidSpeed + Math.random()*100));
