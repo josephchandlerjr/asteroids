@@ -16,48 +16,30 @@ function trackKeys(keys){
 
 class State{
   constructor(status, actors){
-    console.log(status);
     this.status = status;
     this.actors = actors;
   }
   update(time, arrowKeys){
-    //let newState = new State(this.status, this.actors.map(actor => actor.update(time, arrowKeys)));
-    //if(arrowKeys["Space"]){
-    //  let ship = newState.actors.find(actor => actor.type == "ship");
-    //  newState = new State(this.status, newState.actors.concat([new Laser(ship.bow, ship.angle)]));
-    //}
-    //let ship = this.actors.find(actor => actor.type == "ship");
-    //let lasers = newActors.filter(actor => actor.type == "laser");
-    // // loop over this.actors so that if we have to remove an actor we do so in newState
-    //for (let actor of actors){
-    //  if(actor.type == "asteroid"){
-          // if(this.touches(ship,actor))
-          //    newState = ship.collide(newState, actor);
-          // for (let laser of lasers){
-              // if (this.touches(laser,actor))
-                //newState = actor.collide(newState, laser);
-          //}
-      //}
-    //}
     let newActors = this.actors.map(actor => actor.update(time, arrowKeys));
-    // add laser if spacebar is pressed
     if(arrowKeys["Space"]){
-      let ship = this.actors.find(actor => actor.type == "ship");
-      newActors.push(new Laser(ship.bow, ship.angle));
+      let ship = newActors.find(actor => actor.type == "ship");
+      newActors = newActors.concat([new Laser(ship.bow, ship.angle)])
     }
+    let newState = new State(this.status, newActors);
     let ship = newActors.find(actor => actor.type == "ship");
     let lasers = newActors.filter(actor => actor.type == "laser");
-    newActors = newActors.map(actor =>{
-      if(actor.type != "ship" && actor.type != "laser"){
-        this.touches(ship,actor);
-        for(let laser of lasers){
-          if(this.touches(laser, actor)) return null;
+    // loop over this.actors so that if we have to remove an actor we do so in newState
+    for (let actor of newActors){
+      if(actor.type == "asteroid"){
+        if(this.touches(ship,actor)) newState = ship.collide(newState, actor);
+        for (let laser of lasers){
+          if (this.touches(laser,actor)){
+            newState = actor.collide(newState, laser);
+          }
         }
       }
-      return actor;
-    });
-    newActors = newActors.filter(x => x != null);
-    return new State("playing", newActors);
+    }
+    return newState;
   }
   touches(actor1, actor2){
     for (let i=0; i<actor1.points.length; i++){
@@ -249,7 +231,7 @@ class Asteroid{
 
   collide(state, actor){
     if(actor.type == "laser"){
-      let newActors = state.actors.filter(actor => actor != this);
+      let newActors = state.actors.filter(a => a != this);
       let newStatus = newActors.some(actor => actor.type == "asteroid") ? "playing" : "completed";
       return new State(newStatus, newActors);
     }
