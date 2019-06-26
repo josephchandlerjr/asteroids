@@ -279,11 +279,14 @@ let shipAcceleration = 4;
 let turnSpeed = 5;
 let asteroidSpeed = 150;
 let laserBattery = createLaserBattery(laserDelay);
-let ship = new Ship(new Vec(0,0), new Vec(300,300), 0, 20);
+//let ship = new Ship(new Vec(0,0), new Vec(300,300), 0, 20);
 //let asteroid = new Asteroid(new Vec(30,30), 40, asteroidSpeed);
-let asteroids = [1,2,3,4,5].map(_ => new Asteroid(new Vec(Math.random()*300,Math.random()*300),Math.random()*100,asteroidSpeed + Math.random()*100));
-let state = new State("playing",[ship].concat(asteroids));
+
 let display = new Display(document.body, canvas);
+let ship = new Ship(new Vec(0,0), new Vec(canvas.width / 2,canvas.height/2), 0, 20);
+let randomAsteroid = () => new Asteroid(new Vec(canvas.width,canvas.height),Math.random()*100,asteroidSpeed + Math.random()*100);
+let asteroids = [1,2,3,4,5].map(randomAsteroid);
+let state = new State("playing",[ship].concat(asteroids));
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
 display.syncState(state);
 
