@@ -15,14 +15,15 @@ function trackKeys(keys){
 }
 
 class State{
-  constructor(...actors){
+  constructor(status, actors){
+    this.status = status;
     this.actors = actors;
   }
   update(time, arrowKeys){
-    //let newState = new State(this.actors.map(actor => actor.update(time, arrowKeys)));
+    //let newState = new State(this.status, this.actors.map(actor => actor.update(time, arrowKeys)));
     //if(arrowKeys["Space"]){
     //  let ship = newState.actors.find(actor => actor.type == "ship");
-    //  newState = new State(newState.actors.concat([new Laser(ship.bow, ship.angle)]));
+    //  newState = new State(this.status, newState.actors.concat([new Laser(ship.bow, ship.angle)]));
     //}
     //let ship = this.actors.find(actor => actor.type == "ship");
     //let lasers = newActors.filter(actor => actor.type == "laser");
@@ -55,7 +56,7 @@ class State{
       return actor;
     });
     newActors = newActors.filter(x => x != null);
-    return new State(...newActors);
+    return new State("playing", newActors);
   }
   touches(actor1, actor2){
     for (let i=0; i<actor1.points.length; i++){
@@ -156,6 +157,11 @@ class Ship{
   move(newCenter){
     return new Ship(this.speed, newCenter, this.angle, this.radius);
   }
+  collide(state, actor){
+    if(actor.type == "asteroid"){
+      return newState(...state.actors)
+    }
+  }
   computePoints(center, angle, radius){
     let bow = this.translate(center, angle, radius);
     this.bow = bow;
@@ -253,7 +259,7 @@ let asteroidSpeed = 150;
 let ship = new Ship(new Vec(0,0), new Vec(300,300), 0, 20);
 //let asteroid = new Asteroid(new Vec(30,30), 40, asteroidSpeed);
 let asteroids = [1,2,3,4,5].map(_ => new Asteroid(new Vec(Math.random()*300,Math.random()*300),Math.random()*100,asteroidSpeed + Math.random()*100));
-let state = new State(ship,...asteroids);
+let state = new State("playing",[ship].concat(asteroids));
 let display = new Display(document.body, canvas);
 let arrowKeys = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
 display.syncState(state);
