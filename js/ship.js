@@ -105,12 +105,19 @@ class Display{
     state.actors = state.actors.filter( x => x != null);
     state.actors.map(actor => this.draw(actor,cx));
   }
-  draw({points}, cx){
+  draw({points, type}, cx){
     cx.beginPath();
+    cx.strokeStyle = type == "laser" ? "red" : "black";
+    cx.fillStyle = type == "ship" ? "aqua" : "#5b5439";
     cx.moveTo(points[0].x, points[0].y);
     for(let i=0; i <= points.length; i++)
       cx.lineTo(points[i % points.length].x,points[i % points.length].y);
-    cx.stroke();
+    if(type == "laser"){
+      cx.stroke();
+    } else {
+      cx.fill();
+      cx.stroke();
+    }
   }
 }
 let canvas = document.querySelector("canvas");
@@ -279,8 +286,7 @@ let shipAcceleration = 4;
 let turnSpeed = 5;
 let asteroidSpeed = 150;
 let laserBattery = createLaserBattery(laserDelay);
-//let ship = new Ship(new Vec(0,0), new Vec(300,300), 0, 20);
-//let asteroid = new Asteroid(new Vec(30,30), 40, asteroidSpeed);
+
 
 let display = new Display(document.body, canvas);
 let ship = new Ship(new Vec(0,0), new Vec(canvas.width / 2,canvas.height/2), 0, 20);
@@ -288,7 +294,6 @@ let randomAsteroid = () => new Asteroid(new Vec(canvas.width,canvas.height),Math
 let asteroids = [1,2,3,4,5].map(randomAsteroid);
 let state = new State("playing",[ship].concat(asteroids));
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
-display.syncState(state);
 
 
 function animate(time, lastTime){
