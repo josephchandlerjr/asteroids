@@ -115,8 +115,10 @@ class Display{
   won(level){
     let cx = this.canvas.getContext("2d");
     cx.font = "bold 48px serif";
-    cx.fillText("Level completed!", 100,100);
-    cx.fillText(`Press any key to begin level ${level + 1}.`, 100,150);
+    cx.fillStyle = "black";
+    cx.fillText("You win!!!", 100,100);
+    cx.fillText("Level completed", 100,150);
+    cx.fillText(`Press ESC to begin level ${level + 1}.`, 100,200);
   }
   draw({points, type}, cx){
     cx.beginPath();
@@ -304,7 +306,7 @@ let laserBattery = createLaserBattery(laserDelay);
 
 let display = new Display(document.body, canvas);
 let ship = new Ship(new Vec(0,0), new Vec(canvas.width / 2,canvas.height/2), 0, 20);
-let randomAsteroid = () => new Asteroid(new Vec(canvas.width,canvas.height),Math.random()*100,asteroidSpeed + Math.random()*100);
+let randomAsteroid = () => new Asteroid(new Vec(canvas.width,canvas.height),Math.random()*100 + 5,asteroidSpeed + Math.random()*100 + 5);
 let asteroids = [1,2,3,4,5].map(randomAsteroid);
 let state = new State("playing",[ship].concat(asteroids));
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
