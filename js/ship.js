@@ -110,11 +110,13 @@ class Display{
     cx.font = "bold 48px serif";
     cx.fillStyle = "red";
     cx.fillText("Your ship has been destroyed!", 100,100);
+    cx.fillText("Press any key to start again.", 100,150);
   }
-  won(){
+  won(level){
     let cx = this.canvas.getContext("2d");
     cx.font = "bold 48px serif";
     cx.fillText("Level completed!", 100,100);
+    cx.fillText(`Press any key to begin level ${level + 1}.`, 100,150);
   }
   draw({points, type}, cx){
     cx.beginPath();
@@ -308,26 +310,30 @@ let state = new State("playing",[ship].concat(asteroids));
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
 
 
-function playLevel(display, state){
-  return new Promise(resolve => {
-    animate2(timeStep =>  {
-      state = state.update(timeStep, keysDown);
-      display.syncState(state);
-      if(state.status != "playing"){
-        resolve(state.status);
-        return false;
-      }
-    });
 
-  });
-}
 
 async function play(){
-  /*
-  I want this to loop through and wait for promise to resolve
-  when it does resolve it it resolves to "dead" stop
-  if it resolves to completed, advance
-  */
+  function playLevel(display, state){
+    return new Promise(resolve => {
+      animate(timeStep =>  {
+        if (!paused){
+          state = state.update(timeStep, keysDown);
+          display.syncState(state);
+          if(state.status != "playing"){
+            resolve(state.status);
+            return false;
+          }
+        }
+      });
+    });
+  }
+  let paused = false;
+  let pause = function(evt){
+    if(evt.key == "Escape"){
+      evt.preventDefault();
+      paused = paused ? false : true;}
+  }
+  window.addEventListener("keydown", pause);
   let laserDelay = 150;
   let shipAcceleration = 4;
   let turnSpeed = 5;
@@ -341,18 +347,19 @@ async function play(){
     let asteroids = [];
     for (let count=0; count < level; count++) asteroids.push(randomAsteroid());
     let state = new State("playing",[ship].concat(asteroids));
-    let status = await playLevel(display, state);
+    let status = await playLevel(display, state, paused);
     if (status == "dead"){
       display.lost();
       break;
     }
     if (status == "completed"){
-      display.won();
+      display.won(level);
+      paused = true;
     }
   }
 }
 
-function animate2(frameFunc){
+function animate(frameFunc){
   let lastTime = null;
   function frame(time){
     if(lastTime != null){
