@@ -297,21 +297,13 @@ function createLaserBattery(delay){
   }
 };
 
-let laserDelay = 150;
-let shipAcceleration = 4;
-let turnSpeed = 5;
-let asteroidSpeed = 150;
-let laserBattery = createLaserBattery(laserDelay);
 
 
-let display = new Display(document.body, canvas);
-let ship = new Ship(new Vec(0,0), new Vec(canvas.width / 2,canvas.height/2), 0, 20);
-let randomAsteroid = () => new Asteroid(new Vec(canvas.width,canvas.height),Math.random()*100 + 5,asteroidSpeed + Math.random()*100 + 5);
-let asteroids = [1,2,3,4,5].map(randomAsteroid);
-let state = new State("playing",[ship].concat(asteroids));
+
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
-
 let restartListener = evt => {play(); window.removeEventListener("keydown", restartListener);};
+
+let randomAsteroid = () => new Asteroid(new Vec(canvas.width,canvas.height),Math.random()*100 + 5,asteroidSpeed + Math.random()*100 + 5);
 
 async function play(){
   function playLevel(display, state){
@@ -335,13 +327,7 @@ async function play(){
       paused = paused ? false : true;}
   }
   window.addEventListener("keydown", pause);
-  let laserDelay = 150;
-  let shipAcceleration = 4;
-  let turnSpeed = 5;
-  let asteroidSpeed = 150;
 
-  let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
-  let laserBattery = createLaserBattery(laserDelay);
   for (let level=1; ; level++){
     let display = new Display(document.body, canvas);
     let ship = new Ship(new Vec(0,0), new Vec(canvas.width / 2,canvas.height/2), 0, 20);
@@ -373,5 +359,12 @@ function animate(frameFunc){
   }
   requestAnimationFrame(frame);
 }
+
+
+const laserDelay = 150;
+const shipAcceleration = 4;
+const turnSpeed = 5;
+const asteroidSpeed = 150;
+const laserBattery = createLaserBattery(laserDelay);
 
 play();
