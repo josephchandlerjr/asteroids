@@ -309,8 +309,7 @@ let asteroids = [1,2,3,4,5].map(randomAsteroid);
 let state = new State("playing",[ship].concat(asteroids));
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
 
-
-
+let restartListener = evt => {play(); window.removeEventListener("keydown", restartListener);};
 
 async function play(){
   function playLevel(display, state){
@@ -350,6 +349,7 @@ async function play(){
     let status = await playLevel(display, state, paused);
     if (status == "dead"){
       display.lost();
+      window.addEventListener("keydown",restartListener);
       break;
     }
     if (status == "completed"){
