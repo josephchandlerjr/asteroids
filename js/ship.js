@@ -172,6 +172,7 @@ class Ship{
       accel = accel.times(time);
       newSpeed = newSpeed.plus(accel);
     }
+    //if (keysDown["ArrowDown"]) newSpeed = new Vec(0,0);
     if (keysDown["ArrowLeft"]) pivot = -time * turnSpeed;
     if (keysDown["ArrowRight"]) pivot = time * turnSpeed;
     let newCenter = this.center.plus(newSpeed);
@@ -296,14 +297,56 @@ let state = new State("playing",[ship].concat(asteroids));
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
 
 
-function animate(time, lastTime){
-  if (lastTime != null){
-    let timeStep = Math.min(10, time - lastTime) / 1000;
-    state = state.update(timeStep, keysDown);
-    display.syncState(state);
-  }
-  lastTime = time;
-  requestAnimationFrame(time => animate(time, lastTime));
+function playLevel(display, state){
+  return new Promise(resolve => {
+    animate2(timeStep =>  {
+      state = state.update(timeStep, keysDown);
+      display.syncState(state);
+      if(state.status != "playing"){
+        resolve(state.status);
+        return false;
+      }
+    });
+
+  });
 }
 
-requestAnimationFrame(animate);
+async function play(){
+  /*
+  I want this to loop through and wait for promise to resolve
+  when it does resolve it it resolves to "dead" stop
+  if it resolves to completed, advance
+  */
+  let laserDelay = 150;
+  let shipAcceleration = 4;
+  let turnSpeed = 5;
+  let asteroidSpeed = 150;
+
+  let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
+  let laserBattery = createLaserBattery(laserDelay);
+  for (let level=1; ; level++){
+    let display = new Display(document.body, canvas);
+    let ship = new Ship(new Vec(0,0), new Vec(canvas.width / 2,canvas.height/2), 0, 20);
+    let asteroids = [];
+    for (let count=0; count < level; count++) asteroids.push(randomAsteroid());
+    let state = new State("playing",[ship].concat(asteroids));
+    let status = await playLevel(display, state);
+    if (status == "dead") break
+    if (status == "completed") continue;
+  }
+}
+
+function animate2(frameFunc){
+  let lastTime = null;
+  function frame(time){
+    if(lastTime != null){
+      let timeStep = Math.min(10, time - lastTime) / 1000;
+      if (frameFunc(timeStep) === false) return;
+    }
+    lastTime = time;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+play();
