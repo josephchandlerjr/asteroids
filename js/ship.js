@@ -105,6 +105,17 @@ class Display{
     state.actors = state.actors.filter( x => x != null);
     state.actors.map(actor => this.draw(actor,cx));
   }
+  lost(){
+    let cx = this.canvas.getContext("2d");
+    cx.font = "bold 48px serif";
+    cx.fillStyle = "red";
+    cx.fillText("Your ship has been destroyed!", 100,100);
+  }
+  won(){
+    let cx = this.canvas.getContext("2d");
+    cx.font = "bold 48px serif";
+    cx.fillText("Level completed!", 100,100);
+  }
   draw({points, type}, cx){
     cx.beginPath();
     cx.strokeStyle = type == "laser" ? "red" : "black";
@@ -331,8 +342,13 @@ async function play(){
     for (let count=0; count < level; count++) asteroids.push(randomAsteroid());
     let state = new State("playing",[ship].concat(asteroids));
     let status = await playLevel(display, state);
-    if (status == "dead") break
-    if (status == "completed") continue;
+    if (status == "dead"){
+      display.lost();
+      break;
+    }
+    if (status == "completed"){
+      display.won();
+    }
   }
 }
 
