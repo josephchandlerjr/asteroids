@@ -22,12 +22,12 @@ class State{
   update(time, keysDown){
     let newActors = this.actors.map(actor => actor.update(time, keysDown));
     newActors = newActors.filter(a => a != null);
+    let ship = newActors.find(actor => actor.type == "ship");
+    if (keysDown["ArrowUp"]) newActors.push(new Exhaust(ship.exhaustPoint));
     if(keysDown["Space"] && laserBattery.isReady()){
-      let ship = newActors.find(actor => actor.type == "ship");
       newActors = newActors.concat([new Laser(ship.bow, ship.angle)])
     }
     let newState = new State(this.status, newActors);
-    let ship = newActors.find(actor => actor.type == "ship");
     let lasers = newActors.filter(actor => actor.type == "laser");
     // loop over newActors not newState.actors in case something is removed
     for (let actor of newActors){
@@ -41,6 +41,8 @@ class State{
         }
       }
     }
+
+
     return newState;
   }
   touches(actor1, actor2){
@@ -173,11 +175,11 @@ class Ship{
     }
   }
   computePoints(center, angle, radius){
-    let bow = this.translate(center, angle, radius);
-    this.bow = bow;
-    let port =  this.translate(center, angle + 3 * Math.PI / 4, radius);
-    let starboard = this.translate(center, angle + -3 * Math.PI / 4, radius);
-    return [bow,port,center, starboard];
+    this.bow = this.translate(center, angle, radius);
+    this.port = this.translate(center, angle + 3 * Math.PI / 4, radius);
+    this.starboard = this.translate(center, angle + -3 * Math.PI / 4, radius);
+    this.exhaustPoint = this.port.plus(this.starboard).times(0.5);
+    return [this.bow,this.port,this.center, this.starboard];
   }
   translate(point, angle, radius){
     return point.plus(new Vec(Math.cos(angle),Math.sin(angle)).times(radius));
@@ -312,10 +314,17 @@ class Exhaust extends Explosion{
   constructor(center, radius, updated){
     super(center, radius, updated);
   }
+  update(time){
+    if (this.updated > this.expiresAfter) return null;
+    return new Exhaust(this.center, this.radius + (this.expansion + time), this.updated + 1);
+  }
+  move(){
+    return null;
+  }
 }
-Exhaust.prototype.expiresAfter = 15;
-Exhaust.prototype.radius = 2;
-Exhaust.prototype.expansion = 3;
+Exhaust.prototype.expiresAfter = 2;
+Exhaust.prototype.radius = 0.25;
+Exhaust.prototype.expansion = 2;
 Exhaust.prototype.type = "explosion";
 
 function createLaserBattery(delay){
