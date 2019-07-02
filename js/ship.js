@@ -303,7 +303,10 @@ class Explosion{
   update(time){
     if (this.updated > this.expiresAfter) return null;
     return new Explosion(this.center, this.radius + (this.expansion + time), this.updated + 1);
-}
+  }
+  move() {
+    return null;
+  }
 }
 Explosion.prototype.expiresAfter = 15;
 Explosion.prototype.radius = 4;
