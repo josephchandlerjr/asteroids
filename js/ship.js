@@ -21,6 +21,7 @@ class State{
   }
   update(time, keysDown){
     let newActors = this.actors.map(actor => actor.update(time, keysDown));
+    newActors = newActors.filter(a => a != null);
     if(keysDown["Space"] && laserBattery.isReady()){
       let ship = newActors.find(actor => actor.type == "ship");
       newActors = newActors.concat([new Laser(ship.bow, ship.angle)])
@@ -129,6 +130,9 @@ class Display{
       cx.lineTo(points[i % points.length].x,points[i % points.length].y);
     if(type == "laser"){
       cx.stroke();
+    } if (type == "explosion"){
+      cx.strokeStyle = "red";
+      cx.stroke();
     } else {
       cx.fill();
       cx.stroke();
@@ -218,7 +222,7 @@ class Laser{
   collide(state, actor){
     if(actor.type == "asteroid"){
       let newActors = state.actors.filter(a => a != this);
-      return new State(state.status, newActors);
+      return new State(state.status, newActors.concat(new Explosion(actor.center)));
     }
   }
   move(newCenter){ // should never be moved
@@ -282,6 +286,26 @@ class Asteroid{
 
 Asteroid.prototype.type = "asteroid";
 
+class Explosion{
+  constructor(center, radius, updated){
+    this.center = center;
+    if (!radius) radius = 4;
+    this.radius = radius;
+    if (!updated) updated = 0;
+    this.updated = updated;
+    this.points = [];
+    for(let a=0; a < 2 * Math.PI; a+= 0.2){
+      this.points.push(this.center.plus(new Vec(Math.cos(a),Math.sin(a)).times(radius)));
+    }
+    console.log(this.points);
+  }
+  update(time){
+    if (this.updated > this.expiresAfter) return null;
+    return new Explosion(this.center, this.radius * (1.1+time), this.updated + 1);
+}
+}
+Explosion.prototype.expiresAfter = 15;
+Explosion.prototype.type = "explosion";
 function createLaserBattery(delay){
   return {
     ready: true,
