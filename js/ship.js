@@ -289,8 +289,7 @@ Asteroid.prototype.type = "asteroid";
 class Explosion{
   constructor(center, radius, updated){
     this.center = center;
-    if (!radius) radius = 4;
-    this.radius = radius;
+    if(radius) this.radius = radius;
     if (!updated) updated = 0;
     this.updated = updated;
     this.points = [];
@@ -301,11 +300,24 @@ class Explosion{
   }
   update(time){
     if (this.updated > this.expiresAfter) return null;
-    return new Explosion(this.center, this.radius * (1.1+time), this.updated + 1);
+    return new Explosion(this.center, this.radius + (this.expansion + time), this.updated + 1);
 }
 }
 Explosion.prototype.expiresAfter = 15;
+Explosion.prototype.radius = 4;
+Explosion.prototype.expansion = 3;
 Explosion.prototype.type = "explosion";
+
+class Exhaust extends Explosion{
+  constructor(center, radius, updated){
+    super(center, radius, updated);
+  }
+}
+Exhaust.prototype.expiresAfter = 15;
+Exhaust.prototype.radius = 2;
+Exhaust.prototype.expansion = 3;
+Exhaust.prototype.type = "explosion";
+
 function createLaserBattery(delay){
   return {
     ready: true,
