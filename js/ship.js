@@ -76,6 +76,7 @@ class Display{
   constructor(parent, canvas){
     this.parent = parent;
     this.canvas = canvas;
+    this.cx = canvas.getContext("2d");
     if (!canvas){
       this.canvas = document.createElement("canvas");
       this.canvas.style.height = this.parent.style.height;
@@ -90,17 +91,17 @@ class Display{
     // if leaves canvas 'teleport' to other side
     state.actors = state.actors.map(actor => {
       let newActor = actor;
-      if (actor.center.x > canvas.width + actor.radius){
-        newActor = actor.move(actor.center.plus(new Vec(-canvas.width - actor.radius,0)));
+      if (actor.center.x > this.canvas.width + actor.radius){
+        newActor = actor.move(actor.center.plus(new Vec(-this.canvas.width - actor.radius,0)));
       }
       if (actor.center.x < 0 - actor.radius){
-        newActor = actor.move(actor.center.plus(new Vec(canvas.width + actor.radius,0)));
+        newActor = actor.move(actor.center.plus(new Vec(this.canvas.width + actor.radius,0)));
       }
-      if (actor.center.y > canvas.height + actor.radius){
-        newActor = actor.move(actor.center.plus(new Vec(0, -canvas.height - actor.radius)));
+      if (actor.center.y > this.canvas.height + actor.radius){
+        newActor = actor.move(actor.center.plus(new Vec(0, -this.canvas.height - actor.radius)));
       }
       if (actor.center.y < 0 - actor.radius){
-        newActor = actor.move(actor.center.plus(new Vec(0, canvas.height + actor.radius)));
+        newActor = actor.move(actor.center.plus(new Vec(0, this.canvas.height + actor.radius)));
       }
 
       return newActor;
@@ -123,28 +124,58 @@ class Display{
     cx.fillText("Level completed", 100,150);
     cx.fillText(`Press ESC to begin level ${level + 1}.`, 100,200);
   }
-  draw({points, type}, cx){
-    cx.beginPath();
-    cx.strokeStyle = type == "laser" ? "red" : "black";
-    cx.fillStyle = type == "ship" ? "aqua" : "#5b5439";
-    cx.moveTo(points[0].x, points[0].y);
-    for(let i=0; i <= points.length; i++)
-      cx.lineTo(points[i % points.length].x,points[i % points.length].y);
-    if(type == "laser"){
-      cx.stroke();
-    } if (type == "explosion"){
-      cx.strokeStyle = "red";
-      cx.stroke();
-    } else {
-      cx.fill();
-      cx.stroke();
+  draw({points, type}){
+    switch (type){
+      case "ship"     : this.drawShip({points, type}); break;
+      case "laser"    : this.drawLaser({points, type}); break;
+      case "asteroid" : this.drawAsteroid({points, type}); break;
+      case "explosion": this.drawExplosion({points, type}); break;
+      case "exhaust"  : this.drawExhaust({points, type}); break;
+      default: throw new Exception("unknown actor type");
     }
   }
+  drawShip({points, type}){
+    this.cx.beginPath();
+    this.cx.strokeStyle = "black";
+    this.cx.fillStyle = "aqua"
+    this.connectPoints(points);
+    this.cx.fill();
+    this.cx.stroke();
+  }
+  drawLaser({points, type}){
+    this.cx.strokeStyle = "red";
+    this.cx.beginPath();
+    this.connectPoints(points)
+    this.cx.stroke();
+  }
+  drawAsteroid({points, type}){
+    this.cx.strokeStyle = "black";
+    this.cx. fillStyle = "#5b5439";
+    this.cx.beginPath();
+    this.connectPoints(points)
+    this.cx.stroke();
+    this.cx.fill();
+  }
+  drawExplosion({points, type}){
+    this.cx.strokeStyle = "red";
+    this.cx.beginPath();
+    this.connectPoints(points)
+    this.cx.stroke();
+  }
+  drawExhaust({points, type}){
+    this.cx.strokeStyle = "orange";
+    this.cx.beginPath();
+    this.connectPoints(points)
+    this.cx.stroke();
+  }
+  connectPoints(points){
+    this.cx.moveTo(points[0].x, points[0].y);
+    for(let i=0; i <= points.length; i++)
+      this.cx.lineTo(points[i % points.length].x,points[i % points.length].y);
+
+  }
 }
-let canvas = document.querySelector("canvas");
-let cx = canvas.getContext("2d");
-canvas.height = window.innerHeight;
-canvas.width = window.innerWidth;
+
 
 class Vec {
   constructor(x, y) {
@@ -192,6 +223,8 @@ class Ship{
       accel = accel.times(shipAcceleration);
       accel = accel.times(time);
       newSpeed = newSpeed.plus(accel);
+    } else {
+      newSpeed = newSpeed.times(.99);
     }
     //if (keysDown["ArrowDown"]) newSpeed = new Vec(0,0);
     if (keysDown["ArrowLeft"]) pivot = -time * turnSpeed;
@@ -298,7 +331,6 @@ class Explosion{
     for(let a=0; a < 2 * Math.PI; a+= 0.2){
       this.points.push(this.center.plus(new Vec(Math.cos(a),Math.sin(a)).times(radius)));
     }
-    console.log(this.points);
   }
   update(time){
     if (this.updated > this.expiresAfter) return null;
@@ -328,7 +360,7 @@ class Exhaust extends Explosion{
 Exhaust.prototype.expiresAfter = 2;
 Exhaust.prototype.radius = 0.25;
 Exhaust.prototype.expansion = 2;
-Exhaust.prototype.type = "explosion";
+Exhaust.prototype.type = "exhaust";
 
 function createLaserBattery(delay){
   return {
@@ -351,9 +383,9 @@ function createLaserBattery(delay){
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
 let restartListener = evt => {play(); window.removeEventListener("keydown", restartListener);};
 
-let randomAsteroid = () => new Asteroid(new Vec(canvas.width,canvas.height),Math.random()*100 + 5,asteroidSpeed + Math.random()*100 + 5);
+let randomAsteroid = (canvas) => new Asteroid(new Vec(canvas.width,canvas.height),Math.random()*100 + 5,asteroidSpeed + Math.random()*100 + 5);
 
-async function play(){
+async function play(canvas){
   function playLevel(display, state){
     return new Promise(resolve => {
       animate(timeStep =>  {
@@ -380,7 +412,7 @@ async function play(){
     let display = new Display(document.body, canvas);
     let ship = new Ship(new Vec(0,0), new Vec(canvas.width / 2,canvas.height/2), 0, 20);
     let asteroids = [];
-    for (let count=0; count < level; count++) asteroids.push(randomAsteroid());
+    for (let count=0; count < level; count++) asteroids.push(randomAsteroid(canvas));
     let state = new State("playing",[ship].concat(asteroids));
     let status = await playLevel(display, state, paused);
     if (status == "dead"){
@@ -415,4 +447,8 @@ const turnSpeed = 5;
 const asteroidSpeed = 150;
 const laserBattery = createLaserBattery(laserDelay);
 
-play();
+let canvas = document.querySelector("canvas");
+canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+
+play(canvas);
