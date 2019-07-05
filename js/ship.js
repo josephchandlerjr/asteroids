@@ -383,7 +383,7 @@ function createLaserBattery(delay){
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
 let restartListener = evt => {play(); window.removeEventListener("keydown", restartListener);};
 
-let randomAsteroid = (canvas) => new Asteroid(new Vec(canvas.width,canvas.height),Math.random()*100 + 5,asteroidSpeed + Math.random()*100 + 5);
+let randomAsteroid = (canvas) => new Asteroid(new Vec(canvas.width,canvas.height),Math.random()*(canvas.height/13.66) + 5,asteroidSpeed + Math.random()*(canvas.height/13.66) + 5);
 
 async function play(canvas){
   function playLevel(display, state){
@@ -404,13 +404,14 @@ async function play(canvas){
   let pause = function(evt){
     if(evt.key == "Escape"){
       evt.preventDefault();
-      paused = paused ? false : true;}
+      paused = paused ? false : true;
+    }
   }
   window.addEventListener("keydown", pause);
 
   for (let level=1; ; level++){
     let display = new Display(document.body, canvas);
-    let ship = new Ship(new Vec(0,0), new Vec(canvas.width / 2,canvas.height/2), 0, 20);
+    let ship = new Ship(new Vec(0,0), new Vec(canvas.width / 2,canvas.height/2), 0, canvas.width / 68.3);
     let asteroids = [];
     for (let count=0; count < level; count++) asteroids.push(randomAsteroid(canvas));
     let state = new State("playing",[ship].concat(asteroids));
