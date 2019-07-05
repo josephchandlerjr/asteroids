@@ -77,13 +77,14 @@ class Display{
     this.parent = parent;
     this.canvas = canvas;
     this.cx = canvas.getContext("2d");
-    if (!canvas){
-      this.canvas = document.createElement("canvas");
-      this.canvas.style.height = this.parent.style.height;
-      this.canvas.style.width = "100%";
-      this.canvas.style.border = "2px solid black";
-    }
     this.parent.appendChild(this.canvas);
+    this.setFont();
+  }
+  setFont(){
+    this.cx.font = `bold ${this.canvas.width * 0.0351}px serif`;
+    this.fontBeginX = this.canvas.width/3
+    this.fontBeginY = this.canvas.height/3
+    //console.log(fontBeginX, fontBeginX);
   }
   syncState(state){
     let cx = this.canvas.getContext("2d");
@@ -111,18 +112,16 @@ class Display{
   }
   lost(){
     let cx = this.canvas.getContext("2d");
-    cx.font = "bold 48px serif";
     cx.fillStyle = "red";
-    cx.fillText("Your ship has been destroyed!", 100,100);
-    cx.fillText("Press any key to start again.", 100,150);
+    cx.fillText("Your ship has been destroyed!", this.fontBeginX, this.fontBeginY);
+    cx.fillText("Press any key to start again.", this.fontBeginX, this.fontBeginY+50);
   }
   won(level){
     let cx = this.canvas.getContext("2d");
-    cx.font = "bold 48px serif";
     cx.fillStyle = "black";
-    cx.fillText("You win!!!", 100,100);
-    cx.fillText("Level completed", 100,150);
-    cx.fillText(`Press ESC to begin level ${level + 1}.`, 100,200);
+    cx.fillText("You win!!!", this.fontBeginX, this.fontBeginY);
+    cx.fillText("Level completed", this.fontBeginX, this.fontBeginY+50);
+    cx.fillText(`Press ESC to begin level ${level + 1}.`, this.fontBeginX, this.fontBeginY+100);
   }
   draw({points, type}){
     switch (type){
