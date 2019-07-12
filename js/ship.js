@@ -84,11 +84,11 @@ class Display{
     this.cx.font = `bold ${this.canvas.width * 0.0351}px serif`;
     this.fontBeginX = this.canvas.width/3
     this.fontBeginY = this.canvas.height/3
-    //console.log(fontBeginX, fontBeginX);
   }
   syncState(state){
     let cx = this.canvas.getContext("2d");
     cx.clearRect(0,0,this.canvas.width, this.canvas.height);
+
     // if leaves canvas 'teleport' to other side
     state.actors = state.actors.map(actor => {
       let newActor = actor;
@@ -196,6 +196,9 @@ class Ship{
     this.points = this.computePoints(center,angle,radius);
     this.speed = speed;
   }
+
+  get type(){ return "ship";}
+
   move(newCenter){
     return new Ship(this.speed, newCenter, this.angle, this.radius);
   }
@@ -233,8 +236,6 @@ class Ship{
     return new Ship(newSpeed, newCenter, newAngle, this.radius);
   }
 }
-
-Ship.prototype.type = "ship";
 
 class Laser{
   constructor(center, angle){
@@ -298,6 +299,8 @@ class Asteroid{
     return new Asteroid(newCenter, this.radius, this.speed, this.direction, this.pointsFactory);
   }
 
+  get type() { return "asteroid";}
+
   collide(state, actor){
     if(actor.type == "laser"){
       let newActors = state.actors.filter(a => a != this);
@@ -318,7 +321,6 @@ class Asteroid{
   }
 }
 
-Asteroid.prototype.type = "asteroid";
 
 class Explosion{
   constructor(center, radius, updated){
@@ -338,11 +340,12 @@ class Explosion{
   move() {
     return null;
   }
+
+  get type() { return "explosion";}
 }
 Explosion.prototype.expiresAfter = 15;
 Explosion.prototype.radius = 4;
 Explosion.prototype.expansion = 3;
-Explosion.prototype.type = "explosion";
 
 class Exhaust extends Explosion{
   constructor(center, radius, updated){
@@ -355,11 +358,11 @@ class Exhaust extends Explosion{
   move(){
     return null;
   }
+  get type() { return "exhaust";}
 }
 Exhaust.prototype.expiresAfter = 2;
 Exhaust.prototype.radius = 0.25;
 Exhaust.prototype.expansion = 2;
-Exhaust.prototype.type = "exhaust";
 
 function createLaserBattery(delay){
   return {
