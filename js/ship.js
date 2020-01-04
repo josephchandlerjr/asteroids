@@ -383,7 +383,7 @@ function createLaserBattery(delay){
 
 
 let keysDown = trackKeys(["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown", "Space"]);
-let restartListener = evt => {play(); window.removeEventListener("keydown", restartListener);};
+let restartListener = evt => {play(canvas); window.removeEventListener("keydown", restartListener);};
 
 let randomAsteroid = (canvas) =>
     new Asteroid(new Vec(canvas.width,canvas.height),
@@ -455,7 +455,7 @@ const laserBattery = createLaserBattery(laserDelay);
 const asteroidRatio = 0.05
 const shipRatio = 0.014
 
-let canvas = document.querySelector("canvas");
+const canvas = document.querySelector("canvas");
 canvas.height = window.innerHeight;
 canvas.width = window.innerWidth;
 
