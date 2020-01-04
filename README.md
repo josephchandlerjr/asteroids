@@ -1,6 +1,5 @@
 # Asteroids
-
-# Created user pure JavaScript and HTML Canvas
+## Created user pure JavaScript and HTML Canvas
 
 
 * Use arrow keys to move ship
