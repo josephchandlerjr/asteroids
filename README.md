@@ -5,3 +5,5 @@
 * Use arrow keys to move ship
 * Use spacebar to shoot lasers
 * Have fun! :)
+
+## Deployed here: https://josephchandler.herokuapp.com/asteroids
